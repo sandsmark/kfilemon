@@ -9,21 +9,25 @@
 
 #include "config.h"
 
-static int (*kde__real_rename)(const char *old, const char *new) = 0;
+static int (*real_rename)(const char *old, const char *new) = 0;
 
 static int serverSocket = -1;
 
+static char *debug;
+
 int rename(const char *old, const char *new) {
-    char* message;
     
-    if (!kde__real_rename) { // We haven't set up yet
-        kde__real_rename = dlsym(RTLD_NEXT, "rename");
+    if (!real_rename) { // We haven't set up yet
+        real_rename = dlsym(RTLD_NEXT, "rename");
     
+        char* message;
         if ((message = dlerror()) != NULL) {
             printf(" *** rename dlopen failed: %s\n", message);
         }
 
         serverSocket = socket(AF_UNIX, SOCK_STREAM, 0);
+
+        debug = getenv("KFILEMON_DEBUG");
     }
 
     if (serverSocket != -1) {
@@ -37,15 +41,16 @@ int rename(const char *old, const char *new) {
             char *currentPath = get_current_dir_name();
             send(serverSocket, currentPath, strlen(currentPath), 0);
             free(currentPath);
-        } else {
+        } else if (debug) {
             printf(" ! Unable to connect to kfilemond! (%s)\n", strerror(errno));
         }
-    } else {
+    } else if (debug) {
         printf(" ! Unable to create kfilemon socket! (%s)\n", strerror(errno));
     }
 
-    printf(" -- Spotted moving %s to %s\n", old, new);
+    if (debug)
+        printf(" -- Spotted moving %s to %s\n", old, new);
     
-    return kde__real_rename(old, new);
+    return real_rename(old, new);
 }
 
