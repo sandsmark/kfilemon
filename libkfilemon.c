@@ -15,6 +15,8 @@ static int serverSocket = -1;
 
 static char *debug;
 
+static char *socketPath;
+
 int rename(const char *old, const char *new) {
     
     if (!real_rename) { // We haven't set up yet
@@ -28,12 +30,14 @@ int rename(const char *old, const char *new) {
         serverSocket = socket(AF_UNIX, SOCK_STREAM, 0);
 
         debug = getenv("KFILEMON_DEBUG");
+
+        socketPath = get_socket_path();
     }
 
     if (serverSocket != -1) {
         struct sockaddr_un remote;
         remote.sun_family = AF_UNIX;
-        strcpy(remote.sun_path, SOCK_PATH);
+        strcpy(remote.sun_path, socketPath);
         socklen_t len = strlen(remote.sun_path) + sizeof(remote.sun_family);
         if (connect(serverSocket, (struct sockaddr*)&remote, len) != -1) {
             send(serverSocket, old, strlen(old)+1, 0);

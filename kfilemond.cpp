@@ -13,7 +13,9 @@ int main(int argc, char **argv) {
 
     sockaddr_un local;
     local.sun_family = AF_UNIX;
-    strcpy(local.sun_path, SOCK_PATH);
+    char *sockPath = get_socket_path();
+    strcpy(local.sun_path, sockPath);
+    free(sockPath);
     unlink(local.sun_path);
     socklen_t len = strlen(local.sun_path) + sizeof(local.sun_family);
     if (bind(s, (sockaddr *)&local, len) == -1) {
