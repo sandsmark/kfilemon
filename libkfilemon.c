@@ -33,7 +33,7 @@ int rename(const char *old, const char *new) {
         socklen_t len = strlen(remote.sun_path) + sizeof(remote.sun_family);
         if (connect(serverSocket, (struct sockaddr*)&remote, len) != -1) {
             send(serverSocket, old, strlen(old)+1, 0);
-            send(serverSocket, old, strlen(old)+1, 0);
+            send(serverSocket, new, strlen(new)+1, 0);
             char *currentPath = get_current_dir_name();
             send(serverSocket, currentPath, strlen(currentPath), 0);
             free(currentPath);
